@@ -33,6 +33,16 @@ impl Link {
 
         Circle::intersection_circle_to_circle(circle1, circle2)
     }
+
+    pub fn link_from_intersection(point: (Option<Vec2>, Option<Vec2>), link1: &mut Vec2, link2: &mut Vec2){
+        if let Some(point) = point.0{
+            Link::link_to_point(point, link1, link2);
+        }
+        else if let Some(point) = point.1{
+            Link::link_to_point(point, link1, link2);
+        }
+    }
+
     pub fn link_to_point(point: Vec2, link1: &mut Vec2, link2: &mut Vec2){
         *link1 = point.clone();
         *link2 = point.clone();
