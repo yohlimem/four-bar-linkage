@@ -21,6 +21,8 @@ impl Link {
     }
     pub fn draw(&self, draw: &Draw) {
         draw.line().start(self.origin).end(self.p2).color(WHITE);
+        draw.ellipse().radius(10.0).xy(self.origin).color(WHITE);
+        draw.ellipse().radius(10.0).xy(self.p2).color(WHITE);
     }
     pub fn convert_to_circles(&self) -> Circle{
         Circle::from(self.origin, self.radius)
@@ -66,7 +68,7 @@ impl Circle {
         let distance = center1.distance(center2);
 
         // Check if the circles intersect
-        if distance <= radius1 + radius2 {
+        if distance <= radius1 + radius2 && distance > (radius1 - radius2).abs() {
             // Calculate the intersection points
             let d = distance;
             let a = (radius1.powi(2) - radius2.powi(2) + d.powi(2)) / (2.0 * d);

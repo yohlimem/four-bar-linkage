@@ -7,6 +7,7 @@ struct Model {
     // window: Window,
     egui: Egui,
     angle: f32,
+    show_radii: bool,
     link1: Link,
     link2: Link,
     link3: Link,
@@ -27,10 +28,11 @@ fn model(app: &App) -> Model {
     let egui = Egui::from_window(&window);
     Model {
         egui,
+        show_radii: false,
         angle: 0.0,
-        link1: Link::from(vec2(-100.0, 0.0), vec2(-50.0, 0.0), 50.0),
-        link2: Link::from(vec2(0.0, 0.0), vec2(50.0, 0.0), 150.0),
-        link3: Link::from(vec2(50.0, 0.0), vec2(0.0, 0.0), 60.0),
+        link1: Link::from(vec2(-100.0, 0.0), vec2(-50.0, 0.0), 70.0),
+        link2: Link::from(vec2(0.0, 0.0), vec2(50.0, 0.0), 160.0),
+        link3: Link::from(vec2(50.0, 0.0), vec2(0.0, 0.0), 200.0),
     }
 }
 
@@ -42,15 +44,25 @@ fn update(app: &App, model: &mut Model, update: Update) {
 
     egui::Window::new("Rum window").show(&ctx, |ui| {
         ui.label("res");
+        ui.add(egui::Slider::new(&mut model.link1.radius, 1.0..=800.0));
+        ui.add(egui::Slider::new(&mut model.link2.radius, 1.0..=800.0));
+        ui.add(egui::Slider::new(&mut model.link3.radius, 1.0..=800.0));
+        ui.add(egui::Checkbox::new(&mut model.show_radii, "show radii?"))
     });
     model.angle += 0.1 / PI;
     let angle_point = Link::angle_radius(model.link1.origin, model.angle, model.link1.radius);
       
     Link::link_to_point(angle_point, &mut model.link1.p2, &mut model.link2.origin);
 
-    let intersection = model.link2.radius_intersection(&model.link3).1.expect("msg");
+    let intersection = model.link2.radius_intersection(&model.link3);
+    if let Some(intersection) = intersection.1 {
+        Link::link_to_point(intersection, &mut model.link2.p2, &mut model.link3.p2);
+        
+    } else if let Some(intersection) = intersection.0 {
+        Link::link_to_point(intersection, &mut model.link2.p2, &mut model.link3.p2);
 
-    Link::link_to_point(intersection, &mut model.link2.p2, &mut model.link3.p2)
+    }
+
 }
 
 fn raw_window_event(_app: &App, model: &mut Model, event: &nannou::winit::event::WindowEvent) {
@@ -68,8 +80,10 @@ fn view(app: &App, model: &Model, frame: Frame) {
     let c2 = Circle::from(model.link2.origin, model.link2.radius);
     let c3 = Circle::from(model.link3.origin, model.link3.radius);
 
-    // c2.draw(&draw);
-    // c3.draw(&draw);
+    if model.show_radii {
+        c2.draw(&draw);
+        c3.draw(&draw);
+    }
 
     draw.to_frame(app, &frame).unwrap();
     model.egui.draw_to_frame(&frame).unwrap();
